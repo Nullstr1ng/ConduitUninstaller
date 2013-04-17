@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConduitRemover1", "ConduitRemover1\ConduitRemover1.csproj", "{C7ECD9C1-4BFC-4A0B-A205-AF33FC849C29}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeTest", "ChromeTest\ChromeTest.csproj", "{7D2ED2E9-754B-4975-ABF4-C19746CAAF3A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -13,6 +15,10 @@ Global
 		{C7ECD9C1-4BFC-4A0B-A205-AF33FC849C29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7ECD9C1-4BFC-4A0B-A205-AF33FC849C29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7ECD9C1-4BFC-4A0B-A205-AF33FC849C29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D2ED2E9-754B-4975-ABF4-C19746CAAF3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D2ED2E9-754B-4975-ABF4-C19746CAAF3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D2ED2E9-754B-4975-ABF4-C19746CAAF3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D2ED2E9-754B-4975-ABF4-C19746CAAF3A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
