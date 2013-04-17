@@ -56,6 +56,7 @@ namespace ConduitRemover
             key.SetValue("ie_default_page", ie_default_page);
             key.SetValue("ff_default_page", ff_default_page);
             key.SetValue("gc_default_page", gc_default_page);
+            key.SetValue("version", Application.ProductVersion.ToString());
 
             //
             Application.ExitThread();

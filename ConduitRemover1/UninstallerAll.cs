@@ -42,6 +42,8 @@ namespace ConduitRemover
                 UninstallChrome();
             }
 
+            MessageBox.Show("HOY!!!!!!");
+
             //if (Firefox.I.IsConduitInstalled())
             //{
             //    UninstallFirefox();

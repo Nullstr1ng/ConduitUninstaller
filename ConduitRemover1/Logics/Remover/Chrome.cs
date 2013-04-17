@@ -265,10 +265,10 @@ namespace ConduitRemover.Logics.Remover
 
             public void CleanSettings()
             {
-                this._stat.Status = "Cleaning settings";
+                _stat.Status = "Cleaning settings";
 
                 Logger.i.AddLog("Opening Preferences file");
-                string pref = Path.Combine(this.DefaultProfile, "Preferences");
+                string pref = Path.Combine(DefaultProfile, "Preferences");
                 string _pref = string.Empty;
 
                 if (!File.Exists(pref)) { return; }
@@ -278,58 +278,196 @@ namespace ConduitRemover.Logics.Remover
                     _pref = reader.ReadToEnd();
                 }
 
-                Logger.i.AddLog("reformatting json");
+                // REFORMAT JSON.DATA
                 JObject json = JObject.Parse(_pref);
-                _pref = json.ToString();
-                //temporarily make a copy of the formatted json for debugging. REMOVE SOON!!
-                using (StreamWriter writer = new StreamWriter(pref + "_json.txt"))
+
+                Logger.i.AddLog("REFORMAT JSON.DATA");
                 {
-                    writer.Write(_pref);
+                    _pref = json.ToString();
+
+                    // create temporary copy
+                    using (StreamWriter writer = new StreamWriter(pref + "_reformatted.txt"))
+                    {
+                        writer.Write(_pref);
+                    }
                 }
                 Logger.i.AddLog("done");
 
-                Logger.i.AddLog("Blacklisting Conduit extension");
-                _pref = _pref.Replace("\"pnjnnnhampgflieglcelomcofocioegp\": {", "\"pnjnnnhampgflieglcelomcofocioegp\": { \"blacklist\": true,");
-
-                List<string> lines = new List<string>();
-                lines.AddRange(_pref.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries));
-
-                // "\"urls_to_restore_on_startup\": [ \"http://www.google.com\", \"http://blekko.com/ws/?source=c3348dd4&toolbarid=blekkotb_031&u=83A5B2EA9E24300A6E6256502B338E55&tbp=homepage\" ]";
-
-                Logger.i.AddLog("Restoring default home page");
-
-                var _url_restore = JObject.Parse(_pref);
-                //JArray url = JArray.FromObject(a);
-                _url_restore["session"]["urls_to_restore_on_startup"].Replace(Registry_GetDefaultPage());
-                _url_restore["session"]["restore_on_startup"].Replace("5");
-
-                _url_restore["session"]["urls_to_restore_on_startup"].Replace("ewan");
-
-                for (int i = 0; i < lines.Count; i++)
+                #region // udpate extension token
+                Logger.i.AddLog("UPDATE extension token");
                 {
-                    //if (lines[i].Contains("urls_to_restore_on_startup\":"))
-                    //{
-                    //    lines[i] = "\"urls_to_restore_on_startup\": " + Registry_GetDefaultPage(); // [ \"http://www.google.com\" ]";
-                    //}
-                    //else if (lines[i].Contains("restore_on_startup\":"))
-                    //{
-                    //    lines[i] = "\"restore_on_startup\": 5,";
-                    //}
-                    //else 
-                        if (lines[i].Contains("\"homepage\":"))
+                    // just make sure to go through each token
+                    var extensions = json["extensions"];
+                    if (extensions != null)
                     {
-                        lines[i] = "\"homepage\": \"http://www.google.com\",";
+                        // extension settings
+                        {
+                            var settings = extensions["settings"];
+                            if (settings != null)
+                            {
+                                Logger.i.AddLog("BLACKLIST InternetHelper3 Toolbar extension");
+                                {
+                                    var token = settings["pnjnnnhampgflieglcelomcofocioegp"];
+                                    if (token != null)
+                                    {
+                                        // conn.Remove(); since we can't do Removal.. Then just blacklist it
+                                        pnjnnnhampgflieglcelomcofocioegp a = new pnjnnnhampgflieglcelomcofocioegp()
+                                        {
+                                            blacklist = true
+                                        };
+                                        var b = JObject.FromObject(a);
+                                        token.Replace(b);
+                                    }
+                                }
+                            }
+                        }
+
+                        Logger.i.AddLog("udpate newtab override");
+                        {
+                            var token = extensions["chrome_url_overrides"];
+                            if (token != null)
+                            {
+                                chrome_url_overrides a = new chrome_url_overrides()
+                                {
+                                    bookmarks = new List<string>()
+                                {
+                                    "chrome-extension://eemcgdkfndhakfknompkggombfjjjeno/main.html"
+                                }
+                                };
+                                var b = JObject.FromObject(a);
+                                token.Replace(b);
+                            }
+                        }
+                    }
+                }
+                Logger.i.AddLog("done");
+                #endregion
+
+                #region // update session token
+                var session = json["session"];
+                if (session != null)
+                {
+                    Logger.i.AddLog("update session token");
+                    session a = new session()
+                    {
+                        urls_to_restore_on_startup = new List<string>()
+                    {
+                        Registry_GetDefaultPage()
+                    }
+                    };
+                    var b = JObject.FromObject(a);
+                    session.Replace(b);
+                    Logger.i.AddLog("done");
+                }
+                #endregion
+
+                #region // update homepage token
+                {
+                    var homepage = json["homepage"];
+                    if (homepage != null)
+                    {
+                        Logger.i.AddLog("update homepage token");
+                        //var a = JObject.FromObject(Registry_GetDefaultPage());
+                        json["homepage"].Replace(Registry_GetDefaultPage());
+                        Logger.i.AddLog("done");
+                    }
+                }
+                #endregion
+
+                // temporary.. remove it soon!
+                Logger.i.AddLog("Updating Preferences file");
+                {
+                    using (StreamWriter writer = new StreamWriter(pref + "_new.txt"))
+                    {
+                        writer.Write(json.ToString());
                     }
                 }
 
-                this._stat.Status = "updating preferences";
-
+                // UPDATE
                 Logger.i.AddLog("Updating Preferences file");
-                using (StreamWriter writer = new StreamWriter(pref))
                 {
-                    writer.Write(string.Join("\r\n", lines.ToArray()));
+                    using (StreamWriter writer = new StreamWriter(pref))
+                    {
+                        writer.Write(json.ToString());
+                    }
                 }
             }
+
+            #region some Chrome's preference objects
+            class pnjnnnhampgflieglcelomcofocioegp
+            {
+                private bool _blacklist = true;
+                public bool blacklist
+                {
+                    get { return _blacklist; }
+                    set
+                    {
+                        if (_blacklist != value)
+                        {
+                            _blacklist = value;
+                        }
+                    }
+                }
+            }
+
+            class chrome_url_overrides
+            {
+                private List<string> _bookmarks = new List<string>();
+                public List<string> bookmarks
+                {
+                    get { return _bookmarks; }
+                    set
+                    {
+                        if (_bookmarks != value)
+                        {
+                            _bookmarks = value;
+                        }
+                    }
+                }
+            }
+
+            class session
+            {
+                private int _restore_on_startup = 5;
+                public int restore_on_startup
+                {
+                    get { return _restore_on_startup; }
+                    set
+                    {
+                        if (_restore_on_startup != value)
+                        {
+                            _restore_on_startup = value;
+                        }
+                    }
+                }
+
+                private bool _restore_on_startup_migrated = true;
+                public bool restore_on_startup_migrated
+                {
+                    get { return _restore_on_startup_migrated; }
+                    set
+                    {
+                        if (_restore_on_startup_migrated != value)
+                        {
+                            _restore_on_startup_migrated = value;
+                        }
+                    }
+                }
+
+                private List<string> _urls_to_restore_on_startup = new List<string>();
+                public List<string> urls_to_restore_on_startup
+                {
+                    get { return _urls_to_restore_on_startup; }
+                    set
+                    {
+                        if (_urls_to_restore_on_startup != value)
+                        {
+                            _urls_to_restore_on_startup = value;
+                        }
+                    }
+                }
+            }
+            #endregion
 
             public string Registry_GetDefaultPage()
             {

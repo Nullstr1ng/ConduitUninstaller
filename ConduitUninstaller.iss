@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "InternetHelper Toolbar"
-#define MyAppVersion "1.1"
+#define MyAppVersion "1.2.0.1"
 #define MyAppPublisher "Air Software"
 #define MyAppURL "http://www.airsoftware.com/"
 #define MyAppExeName "ConduitRemover1.exe"
