@@ -37,22 +37,22 @@ namespace ConduitRemover
         {
             base.OnShown(e);
 
-            if (Chrome.I.IsConduitInstalled())
-            {
-                UninstallChrome();
-            }
+            //if (Chrome.I.IsConduitInstalled())
+            //{
+            //    UninstallChrome();
+            //}
 
-            MessageBox.Show("HOY!!!!!!");
+            //MessageBox.Show("HOY!!!!!!");
 
             //if (Firefox.I.IsConduitInstalled())
             //{
             //    UninstallFirefox();
             //}
 
-            //if (InternetExplorer.I.IsConduitInstalled())
-            //{
-            //    UninstallInternetExplorer();
-            //}
+            if (InternetExplorer.I.IsConduitInstalled())
+            {
+                UninstallInternetExplorer();
+            }
 
             Application.ExitThread();
         }

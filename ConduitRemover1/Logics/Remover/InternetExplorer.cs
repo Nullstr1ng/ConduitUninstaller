@@ -113,53 +113,74 @@ namespace ConduitRemover.Logics.Remover
         {
             _stat.Status = "Removing InternetHelper Toolbar";
 
-            string SoftwareKey = "SOFTWARE";
-            string search_scope = string.Empty;
-
-            int osarch = GetOSArchitecture();
-
-            if (osarch == 64)
+            try
             {
-                SoftwareKey = "SOFTWARE\\Wow6432Node";
-            }
+                string[] keys = {
+                                @"SOFTWARE\Microsoft\Internet Explorer\Toolbar",
+                                @"SOFTWARE\Wow6432Node\Microsoft\Internet Explorer\Toolbar",
+                            };
 
-            search_scope = SoftwareKey + "\\" + "Microsoft\\Internet Explorer\\Toolbar";
+                string clsid = string.Empty;
 
-            RegistryKey reg = null;
-
-            reg = Registry.LocalMachine.OpenSubKey(search_scope, true);
-
-            if (reg == null)
-            {
-                Logger.i.AddLog(this.ToString() + ".RemoveToolbar()" + "> " + search_scope + " return's null even though the system is at 64bit. Using the regular key now");
-                SoftwareKey = "SOFTWARE";
-                search_scope = SoftwareKey + "\\" + "Microsoft\\Internet Explorer\\SearchScopes";
-                Logger.i.AddLog(this.ToString() + ".RemoveToolbar()" + "> " + "Trying to open the key: " + search_scope);
-                reg = Registry.LocalMachine.OpenSubKey(search_scope, true);
-            }
-
-            if (reg != null)
-            {
-                List<string> nvp = new List<string>(reg.GetValueNames());
-                string name_value = string.Empty;
-
-                Logger.i.AddLog(this.ToString() + ".RemoveToolbar()" + "> " + "Enumerating NVP");
-                foreach (string name in nvp)
+                foreach (string key in keys)
                 {
-                    string value = reg.GetValue(name).ToString();
-                    Logger.i.AddLog(this.ToString() + ".RemoveToolbar()" + "> " + "Name: " + name + ", value: " + value);
+                    Logger.i.AddLog("trying to open key " + key);
+                    RegistryKey reg = null;
+                    reg = Registry.LocalMachine.OpenSubKey(key, true);
 
-                    if (value.Contains("InternetHelper"))
+                    if (reg == null)
                     {
-                        name_value = name;
+                        Logger.i.AddLog("key " + key + " returns null.. continue with the next key.");
+                        continue;
+                    }
+
+                    Logger.i.AddLog("enumerating ValueNames");
+                    List<string> nvp = new List<string>(reg.GetValueNames());
+                    string name = string.Empty;
+                    foreach (string entry in nvp)
+                    {
+                        Logger.i.AddLog("reading " + entry + " value");
+                        string value = string.Empty;
+                        {
+                            value = reg.GetValue(entry).ToString();
+                        }
+                        Logger.i.AddLog(entry + " value: " + value);
+
+                        Logger.i.AddLog("is value equals to 'InternetHelper3 Toolbar'? " + (value = "InternetHelper3 Toolbar").ToString());
+                        if (value == "InternetHelper3 Toolbar")
+                        {
+                            name = entry;
+                            clsid = entry;
+
+                            Logger.i.AddLog("deleting this toolbar now");
+                            //if (!string.IsNullOrEmpty(name))
+                            {
+                                reg.DeleteValue(name);
+                            }
+
+                            break;
+                        }
+                    }
+
+                    Logger.i.AddLog("delete toolbar entry in HKCR\\CLSID");
+                    reg = Registry.ClassesRoot.OpenSubKey("CLSID", true);
+                    try
+                    {
+                        reg.DeleteSubKeyTree(clsid);
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.i.AddLog("something went wrong while deleting the toolbar entry in HKCR\\CLSID\\" + clsid);
+                        Logger.i.AddLog("it said: " + ex.Message);
                     }
                 }
 
-                Logger.i.AddLog(this.ToString() + ".RemoveToolbar()" + "> " + "Deleting value: " + name_value);
-                if (reg.GetValue(name_value) != null)
-                {
-                    reg.DeleteValue(name_value);
-                }
+                Logger.i.AddLog("done cleaning Toolbars");
+            }
+            catch (Exception ex)
+            {
+                Logger.i.AddLog("something went wrong while removing toolbar in RemoveToolbar() method");
+                Logger.i.AddLog("it said: " + ex.Message);
             }
         }
 
@@ -167,76 +188,70 @@ namespace ConduitRemover.Logics.Remover
         {
             _stat.Status = "Removing InternetHelper search engine";
 
-            string SoftwareKey = "SOFTWARE";
-            string search_scope = string.Empty;
-
-            //int osarch = GetOSArchitecture();
-
-            //if (osarch == 64)
-            //{
-            //    SoftwareKey = "SOFTWARE\\Wow6432Node";
-            //}
-
-            search_scope = SoftwareKey + "\\" + "Microsoft\\Internet Explorer\\SearchScopes";
-
-            //Logger.i.AddLog("Opening key: " + search_scope);
-            //RegistryKey reg = Registry.CurrentUser.OpenSubKey(search_scope, true);
-
-            //
-            RegistryKey reg = null;
-
-            reg = Registry.CurrentUser.OpenSubKey(search_scope, true);
-
-            if (reg == null)
+            try
             {
-                Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + search_scope + " return's null even though the system is at 64bit. Using the regular key now");
-                SoftwareKey = "SOFTWARE";
-                search_scope = SoftwareKey + "\\" + "Microsoft\\Internet Explorer\\SearchScopes";
-                Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + "Trying to open the key: " + search_scope);
-                reg = Registry.CurrentUser.OpenSubKey(search_scope, true);
-            }
-            //
+                string[] keys = {
+                                @"HKCU\Software\Microsoft\Internet Explorer\SearchScopes",
+                                @"HKCU\Software\Wow6432Node\Microsoft\Internet Explorer\SearchScopes",
+                                @"HKLM\Software\Microsoft\Internet Explorer\SearchScopes",
+                                @"HKLM\Software\Wow6432Node\Microsoft\Internet Explorer\SearchScopes"
+                            };
 
-            if (reg != null)
-            {
-                List<string> search_scopes_guid = new List<string>(reg.GetSubKeyNames());
-                string bing_search_scope_guid = string.Empty;
-
-                Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + "Enumerating search scope guid");
-                foreach (string se in search_scopes_guid)
+                foreach (string key in keys)
                 {
-                    Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + "opening search_scope: " + se);
-                    RegistryKey reg2 = reg.OpenSubKey(se, true);
+                    RegistryKey reg = Registry.CurrentUser;
 
-                    if (reg2.GetValue("DisplayName").ToString().Contains("InternetHelper"))
+                    Logger.i.AddLog("trying to open key " + key);
+
+                    if (key.Substring(0, 4) == "HKCU")
                     {
-                        Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + "Deleting search scope: " + se);
-                        //if(
-                        reg.DeleteSubKey(se);
+                        reg = Registry.CurrentUser.OpenSubKey(key.Replace("HKCU\\", string.Empty), true);
+                    }
+                    else if (key.Substring(0, 4) == "HKLM")
+                    {
+                        reg = Registry.LocalMachine.OpenSubKey(key.Replace("HKLM\\", string.Empty), true);
+                    }
 
-                        Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + "Deleting search scope in LocalMachine: " + se);
-                        RegistryKey reg3 = Registry.CurrentUser.OpenSubKey(search_scope, true);
-                        if(reg3.OpenSubKey(se) != null)
+                    if (reg == null)
+                    {
+                        Logger.i.AddLog("key " + key + " returns null.. continue with the next key.");
+                        continue;
+                    }
+
+                    Logger.i.AddLog("enumerating subkey names");
+                    List<string> nvp = new List<string>(reg.GetSubKeyNames());
+                    string name = string.Empty;
+                    foreach (string entry in nvp)
+                    {
+                        Logger.i.AddLog("trying to open subkey " + entry);
+                        RegistryKey searchscope = reg.OpenSubKey(entry, true);
+
+                        if (searchscope == null)
                         {
-                            reg3.DeleteSubKey(se);
+                            Logger.i.AddLog("key " + key + " returns null.. continue with the next subkey.");
+                            continue;
                         }
 
-                    }
-                    else if (reg2.GetValue("URL").ToString().Contains("bing"))
-                    {
-                        Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + "Bing search scope found");
-                        bing_search_scope_guid = se;
+                        string value = searchscope.GetValue("DisplayName").ToString();
+                        Logger.i.AddLog("Displayname value: " + value);
+
+                        if (value.Contains("InternetHelper3"))
+                        {
+                            reg.DeleteSubKeyTree(entry);
+                        }
+                        else if (value.Contains("Bing"))
+                        {
+                            reg.SetValue("DefaultScope", entry);
+                        }
                     }
                 }
 
-                Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + "Setting default search scope: " + bing_search_scope_guid);
-                reg.SetValue("DefaultScope", bing_search_scope_guid);
-
-                Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + "Done RemoveSearchEngine()");
+                Logger.i.AddLog("done cleaning search scopes");
             }
-            else
+            catch (Exception ex)
             {
-                Logger.i.AddLog(this.ToString() + ".RemoveSearchEngine()" + "> " + search_scope + " is null!");
+                Logger.i.AddLog("something went wrong while removing search scopes in RemoveSearchScope() method");
+                Logger.i.AddLog("it said: " + ex.Message);
             }
         }
 
@@ -244,26 +259,37 @@ namespace ConduitRemover.Logics.Remover
         {
             _stat.Status = "Setting default home page";
 
-            string SoftwareKey = "SOFTWARE";
-            string main = string.Empty;
-
-            int osarch = GetOSArchitecture();
-
-            if (osarch == 64)
+            try
             {
-                SoftwareKey = "SOFTWARE\\Wow6432Node";
+                string[] keys = {
+                                @"SOFTWARE\Microsoft\Internet Explorer\Main",
+                                @"SOFTWARE\Wow6432Node\Microsoft\Internet Explorer\Main",
+                            };
+
+                foreach (string key in keys)
+                {
+                    Logger.i.AddLog("trying to open key " + key);
+                    RegistryKey reg = null;
+                    reg = Registry.CurrentUser.OpenSubKey(key, true);
+
+                    if (reg == null)
+                    {
+                        Logger.i.AddLog("key " + key + " returns null.. continue with the next key.");
+                        continue;
+                    }
+
+                    string defultpage = Registry_GetDefaultPage();
+                    Logger.i.AddLog("Restoring back startup page to its default value: " + defultpage);
+                    reg.SetValue("Start Page", defultpage);
+                }
+
+                Logger.i.AddLog("done cleaning start page");
             }
-
-            main = SoftwareKey + "\\" + "Microsoft\\Internet Explorer\\Main";
-
-            Logger.i.AddLog("Opening subkey: " + main);
-            RegistryKey reg = Registry.CurrentUser.OpenSubKey(main, true);
-
-            string start_page = Registry_GetDefaultPage();
-            Logger.i.AddLog("Setting default start page: " + start_page);
-            reg.SetValue("Start Page", start_page, RegistryValueKind.String); //"http://go.microsoft.com/fwlink/?LinkId=54896");
-
-            Logger.i.AddLog("Done CleanSettings()");
+            catch (Exception ex)
+            {
+                Logger.i.AddLog("something went wrong while restoring back the original start page in RestoreDefaultStartupPage() method");
+                Logger.i.AddLog("it said: " + ex.Message);
+            }
         }
 
         public int GetOSArchitecture()

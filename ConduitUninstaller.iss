@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "InternetHelper Toolbar"
-#define MyAppVersion "1.2.0.1"
+#define MyAppVersion "1.3.0.1"
 #define MyAppPublisher "Air Software"
 #define MyAppURL "http://www.airsoftware.com/"
 #define MyAppExeName "ConduitRemover1.exe"
@@ -74,9 +74,9 @@ begin
   end;
 
   if CurUninstallStep = usUninstall then begin
-    if RegKeyExists(HKEY_LOCAL_MACHINE, software + '\Microsoft\Windows\CurrentVersion\Uninstall\InternetHelper3 Toolbar') then begin
+    //if RegKeyExists(HKEY_LOCAL_MACHINE, software + '\Microsoft\Windows\CurrentVersion\Uninstall\InternetHelper3 Toolbar') then begin
       //MsgBox('hello.', mbInformation, MB_OK);
       ShellExec('open', filename, '', '', SW_SHOW, ewWaitUntilTerminated, errc);
-    end;
+    //end;
   end;
 end;
